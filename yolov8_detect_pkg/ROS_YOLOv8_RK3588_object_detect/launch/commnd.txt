@@ -1,0 +1,1 @@
+roslaunch ros_yolov8_rk3588_object_detect yolov8_rk3588_usb_cam_full_save_detected.launch

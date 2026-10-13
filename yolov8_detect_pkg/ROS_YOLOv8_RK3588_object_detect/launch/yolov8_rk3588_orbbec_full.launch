@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!--
+  一键：RK3588 YOLO 节点 + web_video_server（使用奥比摄像头，不启动 usb_cam）。
+
+  roslaunch ros_yolov8_rk3588_object_detect yolov8_rk3588_orbbec_full.launch
+
+  前提：Safina_sensor.service 自启动服务已运行（orbbec_camera_node 已启动）
+  奥比彩色图像话题：/camera/color/image_raw
+
+  浏览器（默认检测图 /yolov8_usb_cam/image_detect ，端口 8080）：
+    http://<板子IP>:8080/stream_viewer?topic=/yolov8_usb_cam/image_detect&type=mjpeg
+-->
+<launch>
+  <!-- 奥比摄像头话题 -->
+  <arg name="input_topic" default="/camera/color/image_raw"/>
+  <arg name="output_topic" default="image_detect"/>
+
+  <!-- 推流 -->
+  <arg name="stream_port" default="8080"/>
+  <arg name="stream_address" default="0.0.0.0"/>
+  <arg name="web_verbose" default="false"/>
+
+  <!-- 有目标时保存检测图（默认关闭） -->
+  <arg name="save_detected_enable" default="false"/>
+  <arg name="save_detected_path" default="/home/orangepi/detected-results"/>
+  <arg name="save_detected_interval_sec" default="1.0"/>
+
+  <arg name="save_snapshot_raw_enable" default="false"/>
+  <arg name="save_snapshot_raw_topic" default="image_save_raw"/>
+  <arg name="save_snapshot_raw_stream_input" default="false"/>
+
+  <!-- 跳过 usb_cam，直接使用 orbbec_camera 的话题 -->
+
+  <include file="$(find ros_yolov8_rk3588_object_detect)/launch/yolov8_usb_cam_with_stream.launch">
+    <arg name="input_topic" value="$(arg input_topic)"/>
+    <arg name="output_topic" value="$(arg output_topic)"/>
+    <arg name="stream_port" value="$(arg stream_port)"/>
+    <arg name="stream_address" value="$(arg stream_address)"/>
+    <arg name="web_verbose" value="$(arg web_verbose)"/>
+    <arg name="save_detected_enable" value="$(arg save_detected_enable)"/>
+    <arg name="save_detected_path" value="$(arg save_detected_path)"/>
+    <arg name="save_detected_interval_sec" value="$(arg save_detected_interval_sec)"/>
+    <arg name="save_snapshot_raw_enable" value="$(arg save_snapshot_raw_enable)"/>
+    <arg name="save_snapshot_raw_topic" value="$(arg save_snapshot_raw_topic)"/>
+    <arg name="save_snapshot_raw_stream_input" value="$(arg save_snapshot_raw_stream_input)"/>
+  </include>
+</launch>

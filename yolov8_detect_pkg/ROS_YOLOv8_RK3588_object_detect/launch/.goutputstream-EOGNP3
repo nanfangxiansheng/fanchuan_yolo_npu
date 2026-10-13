@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!--
+  一键：usb_cam + RK3588 YOLO 节点 + web_video_server（与「仅 install、无 src」分发配套）。
+
+  roslaunch ros_yolov8_rk3588_object_detect yolov8_rk3588_usb_cam_full.launch
+
+  有目标时保存检测图（默认关闭，最多约 1 秒一张）：
+    roslaunch ... yolov8_rk3588_usb_cam_full.launch save_detected_enable:=true
+  或：
+    roslaunch ... yolov8_rk3588_usb_cam_full_save_detected.launch
+
+  浏览器（默认检测图 /yolov8_usb_cam/image_detect ，端口 8080）：
+    http://<板子IP>:8080/stream_viewer?topic=/yolov8_usb_cam/image_detect&type=mjpeg
+  可选 save_snapshot_raw（默认关）：把 YOLO 输入原图再推到 Web
+    http://<板子IP>:8080/stream_viewer?topic=/yolov8_usb_cam/image_save_raw&type=mjpeg
+-->
+<launch>
+  <!-- usb_cam -->
+  <arg name="video_device" default="/dev/video0"/>
+  <arg name="image_width" default="640"/>
+  <arg name="image_height" default="480"/>
+  <arg name="pixel_format" default="yuyv"/>
+  <arg name="camera_frame_id" default="usb_cam"/>
+  <arg name="io_method" default="mmap"/>
+
+  <!-- 与 yolov8_usb_cam.launch 一致 -->
+  <arg name="input_topic" default="/usb_cam/image_raw"/>
+  <arg name="output_topic" default="image_detect"/>
+
+  <!-- 推流 -->
+  <arg name="stream_port" default="8080"/>
+  <arg name="stream_address" default="0.0.0.0"/>
+  <arg name="web_verbose" default="false"/>
+
+  <!-- 有目标时保存检测图（默认关闭；开启示例见 yolov8_rk3588_usb_cam_full_save_detected.launch） -->
+  <arg name="save_detected_enable" default="false"/>
+  <arg name="save_detected_path" default="/home/orangepi/detected-results"/>
+  <arg name="save_detected_interval_sec" default="1.0"/>
+
+  <arg name="save_snapshot_raw_enable" default="false"/>
+  <arg name="save_snapshot_raw_topic" default="image_save_raw"/>
+  <arg name="save_snapshot_raw_stream_input" default="false"/>
+
+  <node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen">
+    <param name="video_device" value="$(arg video_device)"/>
+    <param name="image_width" value="$(arg image_width)"/>
+    <param name="image_height" value="$(arg image_height)"/>
+    <param name="pixel_format" value="$(arg pixel_format)"/>
+    <param name="camera_frame_id" value="$(arg camera_frame_id)"/>
+    <param name="io_method" value="$(arg io_method)"/>
+  </node>
+
+  <include file="$(find ros_yolov8_rk3588_object_detect)/launch/yolov8_usb_cam_with_stream.launch">
+    <arg name="input_topic" value="$(arg input_topic)"/>
+    <arg name="output_topic" value="$(arg output_topic)"/>
+    <arg name="stream_port" value="$(arg stream_port)"/>
+    <arg name="stream_address" value="$(arg stream_address)"/>
+    <arg name="web_verbose" value="$(arg web_verbose)"/>
+    <arg name="save_detected_enable" value="$(arg save_detected_enable)"/>
+    <arg name="save_detected_path" value="$(arg save_detected_path)"/>
+    <arg name="save_detected_interval_sec" value="$(arg save_detected_interval_sec)"/>
+    <arg name="save_snapshot_raw_enable" value="$(arg save_snapshot_raw_enable)"/>
+    <arg name="save_snapshot_raw_topic" value="$(arg save_snapshot_raw_topic)"/>
+    <arg name="save_snapshot_raw_stream_input" value="$(arg save_snapshot_raw_stream_input)"/>
+  </include>
+</launch>

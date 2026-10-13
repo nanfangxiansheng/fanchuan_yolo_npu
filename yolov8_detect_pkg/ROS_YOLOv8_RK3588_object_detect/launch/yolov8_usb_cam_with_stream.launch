@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!--
+  本机 YOLO 检测 + HTTP 推流（依赖已安装的 web_video_server 功能包，不修改其源码）。
+
+  1) 先自行启动 usb_cam（或其它发布 /usb_cam/image_raw 的节点）。
+  2) roslaunch ros_yolov8_rk3588_object_detect yolov8_usb_cam_with_stream.launch
+
+  浏览器打开（默认检测图话题 /yolov8_usb_cam/image_detect ，端口 8080）：
+    http://<板子IP>:8080/stream_viewer?topic=/yolov8_usb_cam/image_detect&type=mjpeg
+  或仅视频流：
+    http://<板子IP>:8080/stream?topic=/yolov8_usb_cam/image_detect&type=mjpeg
+
+  若改过 yolov8_usb_cam.launch 里的 name 或 output_topic，请把 URL 中的 topic= 改成 rostopic list 里对应 Image 话题。
+-->
+<launch>
+  <arg name="input_topic" default="/usb_cam/image_raw"/>
+  <arg name="output_topic" default="image_detect"/>
+
+  <arg name="save_detected_enable" default="false"/>
+  <arg name="save_detected_path" default="/home/orangepi/detected-results"/>
+  <arg name="save_detected_interval_sec" default="1.0"/>
+
+  <arg name="save_snapshot_raw_enable" default="false"/>
+  <arg name="save_snapshot_raw_topic" default="image_save_raw"/>
+  <arg name="save_snapshot_raw_stream_input" default="false"/>
+
+  <arg name="stream_port" default="8080"/>
+  <arg name="stream_address" default="0.0.0.0" doc="0.0.0.0 表示监听所有网卡"/>
+  <arg name="web_verbose" default="false"/>
+
+  <include file="$(find ros_yolov8_rk3588_object_detect)/launch/yolov8_usb_cam.launch">
+    <arg name="input_topic" value="$(arg input_topic)"/>
+    <arg name="output_topic" value="$(arg output_topic)"/>
+    <arg name="save_detected_enable" value="$(arg save_detected_enable)"/>
+    <arg name="save_detected_path" value="$(arg save_detected_path)"/>
+    <arg name="save_detected_interval_sec" value="$(arg save_detected_interval_sec)"/>
+    <arg name="save_snapshot_raw_enable" value="$(arg save_snapshot_raw_enable)"/>
+    <arg name="save_snapshot_raw_topic" value="$(arg save_snapshot_raw_topic)"/>
+    <arg name="save_snapshot_raw_stream_input" value="$(arg save_snapshot_raw_stream_input)"/>
+  </include>
+
+  <node pkg="web_video_server" type="web_video_server" name="web_video_server" output="screen">
+    <param name="port" value="$(arg stream_port)"/>
+    <param name="address" value="$(arg stream_address)"/>
+    <param name="verbose" value="$(arg web_verbose)"/>
+  </node>
+</launch>

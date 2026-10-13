@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<!--
+  一键：RealSense(D435i) + RK3588 YOLO 节点 + web_video_server
+  （参考 yolov8_rk3588_usb_cam_full.launch，相机源由 usb_cam 换为 realsense2_camera）。
+
+  注意：realsense2_camera 包在 Fast-Drone-250 工作空间，需先 source 两个工作空间：
+    source ~/Fast-Drone-250/devel/setup.bash
+    source ~/something1017/TECH_DEMO/devel/setup.bash
+  然后：
+    roslaunch ros_yolov8_rk3588_object_detect yolov8_rk3588_realsense_full.launch
+
+  彩色流默认 848x480@60（16:9，与 yolo_follow 的 IMG_W=848/IMG_H=480 匹配）。
+  letterbox 会把任意分辨率自动缩到模型输入 640x640，改分辨率只需改下方 args。
+
+  浏览器（默认检测图 /yolov8_usb_cam/image_detect ，端口 8080）：
+    http://<板子IP>:8080/stream_viewer?topic=/yolov8_usb_cam/image_detect&type=mjpeg
+-->
+<launch>
+  <!-- RealSense D435i：仅彩色流，轻量模式 -->
+  <arg name="color_width"    default="848"/>
+  <arg name="color_height"   default="480"/>
+  <arg name="color_fps"      default="60"/>
+  <arg name="enable_depth"   default="false"/>
+  <arg name="enable_infra"   default="false"/>
+  <arg name="enable_gyro"    default="false"/>
+  <arg name="enable_accel"   default="false"/>
+  <arg name="camera_serial"  default=""/>
+
+  <!-- 与 yolov8_usb_cam.launch 一致 -->
+  <arg name="input_topic"  default="/camera/color/image_raw"/>
+  <arg name="output_topic" default="image_detect"/>
+
+  <!-- 推流 -->
+  <arg name="stream_port"    default="8080"/>
+  <arg name="stream_address" default="0.0.0.0"/>
+  <arg name="web_verbose"    default="false"/>
+
+  <!-- 有目标时保存检测图（默认关闭） -->
+  <arg name="save_detected_enable"       default="false"/>
+  <arg name="save_detected_path"         default="/home/orangepi/detected-results"/>
+  <arg name="save_detected_interval_sec" default="1.0"/>
+
+  <arg name="save_snapshot_raw_enable"       default="false"/>
+  <arg name="save_snapshot_raw_topic"        default="image_save_raw"/>
+  <arg name="save_snapshot_raw_stream_input" default="false"/>
+
+  <!-- 步骤一：realsense2_camera（来自 Fast-Drone-250 工作空间） -->
+  <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="color_width"   value="$(arg color_width)"/>
+    <arg name="color_height"  value="$(arg color_height)"/>
+    <arg name="color_fps"     value="$(arg color_fps)"/>
+    <arg name="enable_color"  value="true"/>
+    <arg name="enable_depth"  value="$(arg enable_depth)"/>
+    <arg name="enable_infra1" value="$(arg enable_infra)"/>
+    <arg name="enable_infra2" value="$(arg enable_infra)"/>
+    <arg name="enable_gyro"   value="$(arg enable_gyro)"/>
+    <arg name="enable_accel"  value="$(arg enable_accel)"/>
+    <arg name="serial_no"     value="$(arg camera_serial)"/>
+  </include>
+
+  <!-- 步骤二：RK3588 YOLOv8 识别节点 + web_video_server -->
+  <include file="$(find ros_yolov8_rk3588_object_detect)/launch/yolov8_usb_cam_with_stream.launch">
+    <arg name="input_topic"  value="$(arg input_topic)"/>
+    <arg name="output_topic" value="$(arg output_topic)"/>
+    <arg name="stream_port"  value="$(arg stream_port)"/>
+    <arg name="stream_address" value="$(arg stream_address)"/>
+    <arg name="web_verbose"  value="$(arg web_verbose)"/>
+    <arg name="save_detected_enable" value="$(arg save_detected_enable)"/>
+    <arg name="save_detected_path" value="$(arg save_detected_path)"/>
+    <arg name="save_detected_interval_sec" value="$(arg save_detected_interval_sec)"/>
+    <arg name="save_snapshot_raw_enable" value="$(arg save_snapshot_raw_enable)"/>
+    <arg name="save_snapshot_raw_topic" value="$(arg save_snapshot_raw_topic)"/>
+    <arg name="save_snapshot_raw_stream_input" value="$(arg save_snapshot_raw_stream_input)"/>
+  </include>
+</launch>

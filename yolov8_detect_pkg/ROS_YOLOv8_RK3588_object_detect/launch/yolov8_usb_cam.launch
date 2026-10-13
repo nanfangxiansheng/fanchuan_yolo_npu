@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- 先启动 usb_cam（或其它发布 BGR8 到 input_topic 的节点），再 roslaunch 本文件 -->
+  <!-- <arg name="input_topic" default="/usb_cam/image_raw"/> -->
+   <arg name="input_topic" default="/camera/color/image_raw"/>
+  <arg name="output_topic" default="image_detect"/>
+  <arg name="target_class" default="/home/orangepi/something1017/TECH_DEMO/src/ROS_YOLOv8_RK3588_object_detect/model/A_B_classgarbage.txt"/>
+  <arg name="conf_threshold" default="0.8"/>
+
+  <!-- 有目标时按间隔保存当前检测图（见 yolov8_usb_cam_node save_detected_* 参数） -->
+  <arg name="save_detected_enable" default="false"/>
+  <arg name="save_detected_path" default="/home/orangepi/detected-results"/>
+  <arg name="save_detected_interval_sec" default="1.0"/>
+
+  <!-- 与 save_detected 同一时刻发布未画框的原始 BGR 图，供 web_video_server MJPEG（见 save_snapshot_raw_*） -->
+  <arg name="save_snapshot_raw_enable" default="false"/>
+  <arg name="save_snapshot_raw_topic" default="image_save_raw"/>
+  <arg name="save_snapshot_raw_stream_input" default="false"
+       doc="true：每帧发布 YOLO 输入原图（MJPEG 连续）；false：仅在写盘存图时发布（latched）"/>
+
+  <node pkg="ros_yolov8_rk3588_object_detect" type="yolov8_usb_cam_node" name="yolov8_usb_cam"
+        output="screen" required="true">
+    <param name="input_topic" value="$(arg input_topic)"/>
+    <param name="output_topic" value="$(arg output_topic)"/>
+    <param name="target_class" value="$(arg target_class)"/>
+    <param name="conf_threshold" value="$(arg conf_threshold)"/>
+    <param name="save_detected_enable" value="$(arg save_detected_enable)"/>
+    <param name="save_detected_path" value="$(arg save_detected_path)"/>
+    <param name="save_detected_interval_sec" value="$(arg save_detected_interval_sec)"/>
+    <param name="save_snapshot_raw_enable" value="$(arg save_snapshot_raw_enable)"/>
+    <param name="save_snapshot_raw_topic" value="$(arg save_snapshot_raw_topic)"/>
+    <param name="save_snapshot_raw_stream_input" value="$(arg save_snapshot_raw_stream_input)"/>
+  </node>
+</launch>

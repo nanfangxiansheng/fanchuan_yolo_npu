@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!--
+  与 yolov8_rk3588_usb_cam_full.launch 相同，但默认开启「有目标时按间隔存图」。
+
+  保存目录默认 /home/orangepi/detected-results/ ，文件名 detect_<纳秒时间戳>.jpg ，
+  最短间隔默认 1 秒（有检测时才写入，连续无目标不写）。
+
+  roslaunch ros_yolov8_rk3588_object_detect yolov8_rk3588_usb_cam_full_save_detected.launch
+
+  自定义路径或间隔：
+    ... save_detected_path:=/tmp/out save_detected_interval_sec:=2.0
+-->
+<launch>
+  <include file="$(find ros_yolov8_rk3588_object_detect)/launch/yolov8_rk3588_usb_cam_full.launch">
+    <arg name="save_detected_enable" value="true"/>
+  </include>
+</launch>

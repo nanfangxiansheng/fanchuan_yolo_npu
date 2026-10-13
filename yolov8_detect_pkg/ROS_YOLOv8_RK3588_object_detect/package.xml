@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>ros_yolov8_rk3588_object_detect</name>
+  <version>0.2.0</version>
+  <description>YOLOv8 RKNN on RK3588; batch demo plus ROS1 usb_cam node.</description>
+  <maintainer email="orangepi@example.com">Orange Pi</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>std_msgs</depend>
+  <depend>roslib</depend>
+  <depend>yolov8_ros_msgs</depend>
+
+  <!-- 摄像头 + 推流：与 launch/yolov8_rk3588_usb_cam_full.launch 配套；打 deb 时 Bloom 会写入依赖 -->
+  <exec_depend>usb_cam</exec_depend>
+  <exec_depend>web_video_server</exec_depend>
+</package>
